@@ -1,4 +1,3 @@
-
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
@@ -10,13 +9,15 @@ import argparse
 
 import warnings
 
+
 def fxn():
     warnings.warn("deprecated", DeprecationWarning)
+
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     fxn()
-    
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--reference', type=str, default='', help='Reference dataset used in analysis')
 parser.add_argument('--tissue', type=str, default='', help='transfer tissue used in analysis')
@@ -24,165 +25,164 @@ parser.add_argument('--tissue', type=str, default='', help='transfer tissue used
 args = parser.parse_args()
 reference = args.reference
 analysis_tissue = args.tissue
-results_directory  = f"/results/{reference}_{analysis_tissue}/"
+results_directory = f"/results/{reference}_{analysis_tissue}/"
 
-#specify baseline performance results path here 
+# specify baseline performance results path here
 datapath = Path(f"{results_directory}/baseline_performances/")
 
-
 results = {}
-for outer_directory in datapath.glob("*"): 
+for outer_directory in datapath.glob("*"):
     drug = outer_directory.stem
     results[drug] = {}
-    
-    for inner_directory in outer_directory.glob("*"): 
+
+    for inner_directory in outer_directory.glob("*"):
         tissue = inner_directory.stem
         results[drug][tissue] = {}
         if str(inner_directory).split("/")[-1] != ".ipynb_checkpoints":
             data = np.load(inner_directory / "baseline_performance.npz")
-            #data = np.load(outer_directory / "baseline_performance.npz")
-            for model in ['Linear Regression', 'Nearest Neighbour', 'Random Forest','Neural Network']:
-            #for model in ['Linear Regression', 'Nearest Neighbour','Neural Network']:
+            # data = np.load(outer_directory / "baseline_performance.npz")
+            for model in ['Linear Regression', 'Nearest Neighbour', 'Random Forest', 'Neural Network']:
+                # for model in ['Linear Regression', 'Nearest Neighbour','Neural Network']:
                 zero = data[f"{model}-zero"]
-                zero = np.vstack([zero for _ in range(20)]) # There is only 1 possible zero-shot, so expanding for all trials
+                zero = np.vstack(
+                    [zero for _ in range(20)])  # There is only 1 possible zero-shot, so expanding for all trials
                 performance = np.mean(np.hstack([zero, data[f"{model}-fewshot"]]), axis=0)
 
-                results[drug][tissue][model] = performance    
+                results[drug][tissue][model] = performance
 
-
-#specifiy TCRP performance results path here 
+            # specifiy TCRP performance results path here
 datapath = Path(f"{results_directory}/TCRP_performances/")
-
 
 for i in os.listdir(f"{results_directory}/TCRP_performances/"):
     drug_path = f"{results_directory}/TCRP_performances/{i}/{tissue}"
     for j in os.listdir(drug_path):
-        os.system("mv {} {}/TCRP_performance.npz >/dev/null 2>&1".format(drug_path+'/'+j,drug_path))
+        os.system("mv {} {}/TCRP_performance.npz >/dev/null 2>&1".format(drug_path + '/' + j, drug_path))
 
-
-for outer_directory in datapath.glob("*"): 
+for outer_directory in datapath.glob("*"):
     drug = outer_directory.stem
-    for inner_directory in outer_directory.glob("*"): 
+    for inner_directory in outer_directory.glob("*"):
         tissue = inner_directory.stem
         if str(inner_directory).split("/")[-1] != ".ipynb_checkpoints":
             data = np.load(inner_directory / "TCRP_performance.npz")
 
-            for model in ['TCRP']: 
+            for model in ['TCRP']:
                 zero = data[f"{model}-zero"]
-                new_data = data["TCRP-fewshot"] 
+                new_data = data["TCRP-fewshot"]
                 fewshot = np.vstack([new_data for _ in range(10)])
-                zero = np.vstack([zero for _ in range(10)]) # There is only 1 possible zero-shot, so expanding for all trials
+                zero = np.vstack(
+                    [zero for _ in range(10)])  # There is only 1 possible zero-shot, so expanding for all trials
                 performance = np.mean(np.hstack([zero, fewshot]), axis=0)
-                results[drug][tissue][model] = performance    
-
+                results[drug][tissue][model] = performance
 
 for i in results:
     remove_key = results[i].pop(".ipynb_checkpoints", None)
 
-
-
-results[drug][tissue][model] = performance    
-
+results[drug][tissue][model] = performance
 
 TCRP_results = {'TCRP': []}
 
-for drug, d in results.items(): 
-    for tissue, d in d.items(): 
-        for model, p in d.items(): 
+for drug, d in list(results.items()):
+    for tissue, d in list(d.items()):
+        for model, p in list(d.items()):
             if model == "TCRP":
                 p = np.nan_to_num(p)
                 TCRP_results[model].append(p)
 
-for model, ps in TCRP_results.items(): 
+for model, ps in list(TCRP_results.items()):
     TCRP_results[model] = np.vstack(ps)
 
-
-results_by_baseline = {'Linear Regression': [], 'Nearest Neighbour': [], 'Random Forest': [],"TCRP":[],"Neural Network":[]}
-#results_by_baseline = {'Linear Regression': [], 'Nearest Neighbour': [],"TCRP":[],"Neural Network":[]}
-for drug, d in results.items(): 
-    for tissue, d in d.items(): 
-        for model, p in d.items(): 
+results_by_baseline = {'Linear Regression': [], 'Nearest Neighbour': [], 'Random Forest': [], "TCRP": [],
+                       "Neural Network": []}
+# results_by_baseline = {'Linear Regression': [], 'Nearest Neighbour': [],"TCRP":[],"Neural Network":[]}
+for drug, d in list(results.items()):
+    for tissue, d in list(d.items()):
+        for model, p in list(d.items()):
             p = np.nan_to_num(p)
             results_by_baseline[model].append(p)
-            
-for model, ps in results_by_baseline.items(): 
+
+for model, ps in list(results_by_baseline.items()):
     results_by_baseline[model] = np.vstack(ps)
 
-
 import scipy.stats as st
-std_list = {"Linear Regression": [],"Nearest Neighbour": [],'Random Forest': [], 'TCRP': [], 'Neural Network': []}
-for model, ps in results_by_baseline.items(): 
+
+std_list = {"Linear Regression": [], "Nearest Neighbour": [], 'Random Forest': [], 'TCRP': [], 'Neural Network': []}
+for model, ps in list(results_by_baseline.items()):
     min_ci = []
     max_ci = []
     for i in range(ps.shape[1]):
-        data = ps[:,i]
-        ci = st.t.interval(0.5, len(data)-1, loc=np.mean(data), scale=st.sem(data))
+        data = ps[:, i]
+        ci = st.t.interval(0.5, len(data) - 1, loc=np.mean(data), scale=st.sem(data))
         min_ci.append(ci[0])
         max_ci.append(ci[1])
-    std_list[model].extend([np.array(min_ci),np.array(max_ci)])
-
+    std_list[model].extend([np.array(min_ci), np.array(max_ci)])
 
 fig, ax = plt.subplots()
-fig.set_size_inches(10,10)
+fig.set_size_inches(10, 10)
 
 ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
-if (reference=="GDSC1") and (analysis_tissue=="PDTC"):
-    color_dict={"Linear Regression":"#99C047","Neural Network":"#5D488D","Random Forest":"#52A3B3","Nearest Neighbour": "#506A99","TCRP":"#DB352D"}
+if (reference == "GDSC1") and (analysis_tissue == "PDTC"):
+    color_dict = {"Linear Regression": "#99C047", "Neural Network": "#5D488D", "Random Forest": "#52A3B3",
+                  "Nearest Neighbour": "#506A99", "TCRP": "#DB352D"}
 else:
-    color_dict={"Linear Regression":"green","Neural Network":"purple","Random Forest":"teal","Nearest Neighbour": "blue","TCRP":"red"}
+    color_dict = {"Linear Regression": "green", "Neural Network": "purple", "Random Forest": "teal",
+                  "Nearest Neighbour": "blue", "TCRP": "red"}
 
-for model, ps in results_by_baseline.items(): 
-    p = ax.plot(np.arange(11), np.mean(ps, axis=0),label=model,marker='o',color=color_dict[model])
-    if (reference=="GDSC1") and (analysis_tissue=="PDTC"):
-        ax.vlines(np.arange(11),std_list[model][0],std_list[model][1],color=color_dict[model])
+for model, ps in list(results_by_baseline.items()):
+    p = ax.plot(np.arange(11), np.mean(ps, axis=0), label=model, marker='o', color=color_dict[model])
+    if (reference == "GDSC1") and (analysis_tissue == "PDTC"):
+        ax.vlines(np.arange(11), std_list[model][0], std_list[model][1], color=color_dict[model])
 ax.legend(loc='lower center', bbox_to_anchor=(0.5, 1.05),
           ncol=3, fancybox=True, shadow=True)
 labels = ['Pretrained'] + [str(i) for i in range(1, 11)]
 ax.set_xticks(np.arange(11))
 ax.set_xticklabels(labels)
-if (reference=="GDSC1") and (analysis_tissue=="PDTC"):
-    plt.ylim((-0.25,0.4))
-    plt.yticks([-0.2,-0.1,0,0.1,0.2,0.3,0.4])
+if (reference == "GDSC1") and (analysis_tissue == "PDTC"):
+    plt.ylim((-0.25, 0.4))
+    plt.yticks([-0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4])
 plt.ylabel("Correlation(predicted,actual)")
 plt.xlabel("Number of samples")
-if (reference=="GDSC1") and (analysis_tissue=="PDTC"):
+if (reference == "GDSC1") and (analysis_tissue == "PDTC"):
     plt.xlabel("Number of PDTC models")
 else:
     plt.title(f"{reference} {analysis_tissue} results")
 plt.savefig(f"/results/{reference}_{analysis_tissue}.png")
 
-if (reference=="GDSC1") and (analysis_tissue=="PDTC"):
-    TCRP_drug ={}
+if (reference == "GDSC1") and (analysis_tissue == "PDTC"):
+    TCRP_drug = {}
     linear_drug = {}
     RF_drug = {}
     KNN_drug = {}
     NN_drug = {}
-    for key,value in results.items():
+    for key, value in list(results.items()):
         if False in np.isnan(results[key]['PDTC']["Nearest Neighbour"]):
             p = np.nan_to_num(results[key]["PDTC"]["Nearest Neighbour"])
         TCRP_drug[key] = np.mean(results[key]["PDTC"]["TCRP"])
         linear_drug[key] = np.mean(results[key]["PDTC"]["Linear Regression"])
         NN_drug[key] = np.mean(results[key]["PDTC"]["Neural Network"])
         RF_drug[key] = np.mean(results[key]["PDTC"]["Random Forest"])
-        KNN_drug[key]= np.mean(p)
-    TCRP_drug = {k: v for k, v in sorted(TCRP_drug.items(), key=lambda item: item[1])}   
+        KNN_drug[key] = np.mean(p)
+    TCRP_drug = {k: v for k, v in sorted(list(TCRP_drug.items()), key=lambda item: item[1])}
     linear_drug = dict(OrderedDict((k, linear_drug[k]) for k in list(TCRP_drug.keys())))
     NN_drug = dict(OrderedDict((k, NN_drug[k]) for k in list(TCRP_drug.keys())))
     RF_drug = dict(OrderedDict((k, RF_drug[k]) for k in list(TCRP_drug.keys())))
     KNN_drug = dict(OrderedDict((k, KNN_drug[k]) for k in list(TCRP_drug.keys())))
-    def prepare_points(model_dict):
-        items = model_dict.items()
-        myList = (items) 
-        x, y = zip(*myList) 
-        return x,y
-    TCRP_x,TCRP_y = prepare_points(TCRP_drug)
 
-    linear_x,linear_y = prepare_points(linear_drug)
-    RF_x,RF_y = prepare_points(RF_drug)
-    KNN_x,KNN_y = prepare_points(KNN_drug)
-    NN_x,NN_y = prepare_points(NN_drug)
-    drugs = pd.read_csv("/data/drug_performance.csv")["Drug"].tolist()
+
+    def prepare_points(model_dict):
+        items = list(model_dict.items())
+        myList = (items)
+        x, y = list(zip(*myList))
+        return x, y
+
+
+    TCRP_x, TCRP_y = prepare_points(TCRP_drug)
+
+    linear_x, linear_y = prepare_points(linear_drug)
+    RF_x, RF_y = prepare_points(RF_drug)
+    KNN_x, KNN_y = prepare_points(KNN_drug)
+    NN_x, NN_y = prepare_points(NN_drug)
+    drugs = pd.read_csv("data/drug_performance.csv")["Drug"].tolist()
     new_RF_y = []
     new_KNN_y = []
     new_NN_y = []
@@ -219,57 +219,60 @@ if (reference=="GDSC1") and (analysis_tissue=="PDTC"):
     new_KNN_y = tuple(new_KNN_y)
     new_linear_y = tuple(new_linear_y)
     new_TCRP_y = tuple(new_TCRP_y)
+
+
     def reverse_tuple(t):
-      #condition checking
+        # condition checking
         if len(t) == 0:
             return t
         else:
-            return(t[-1],)+reverse_tuple(t[:-1])
+            return (t[-1],) + reverse_tuple(t[:-1])
+
+
     drugs = tuple(drugs)
     drugs = reverse_tuple(drugs)
     fig = plt.figure()
 
-
     fig, ax = plt.subplots()
 
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    fig.set_size_inches(8,12)
+    fig.set_size_inches(8, 12)
 
-    RF = plt.scatter(reverse_tuple(new_RF_y),drugs,color="#52A3B3",s=100)
+    RF = plt.scatter(reverse_tuple(new_RF_y), drugs, color="#52A3B3", s=100)
     RF.set_label("Random Forest")
-    linear = plt.scatter(reverse_tuple(new_linear_y),drugs,color="#99C047",s=100)
+    linear = plt.scatter(reverse_tuple(new_linear_y), drugs, color="#99C047", s=100)
     linear.set_label("Linear Regression")
-    KNN = plt.scatter(reverse_tuple(new_KNN_y),drugs,color="#506A99",s=100)
+    KNN = plt.scatter(reverse_tuple(new_KNN_y), drugs, color="#506A99", s=100)
     KNN.set_label("Nearest Neighbours")
-    NN = plt.scatter(reverse_tuple(new_NN_y),drugs,color="#796AE7",s=100)
+    NN = plt.scatter(reverse_tuple(new_NN_y), drugs, color="#796AE7", s=100)
     NN.set_label("Neural Network")
-    TCRP = plt.scatter(reverse_tuple(new_TCRP_y),drugs,color="#DB352D",s=100)
+    TCRP = plt.scatter(reverse_tuple(new_TCRP_y), drugs, color="#DB352D", s=100)
     TCRP.set_label("TCRP")
     plt.xlabel("Correlation (predicted,actual)")
-    plt.xlim(-0.5,0.8)
-    plt.xticks([-0.5,-0.3,-0.1,0.1,0.3,0.5,0.7])
-    #plt.tight_layout()
-    #plt.legend(loc='lower right',prop={'size': 6})
+    plt.xlim(-0.5, 0.8)
+    plt.xticks([-0.5, -0.3, -0.1, 0.1, 0.3, 0.5, 0.7])
+    # plt.tight_layout()
+    # plt.legend(loc='lower right',prop={'size': 6})
     plt.savefig(f"/results/{reference}_{analysis_tissue}_dotplot.png")
-    ground_truth = pd.read_csv("/data/drug_performance.csv")["corr"].tolist()
-    drugs = pd.read_csv("/data/drug_performance.csv")["Drug"].tolist()
+    ground_truth = pd.read_csv("data/drug_performance.csv")["corr"].tolist()
+    drugs = pd.read_csv("data/drug_performance.csv")["Drug"].tolist()
     mean_list = []
     for i in drugs:
-        if i in results.keys():
+        if i in list(results.keys()):
             mean_list.append(np.mean((results[i][tissue]["TCRP"]).tolist()))
         else:
             mean_list.append(0)
     diff_list = []
-    for i,j in zip(ground_truth,mean_list):
-        diff_list.append(abs(i-j))
+    for i, j in zip(ground_truth, mean_list):
+        diff_list.append(abs(i - j))
     index = drugs
     index.reverse()
     diff_list.reverse()
-    
-    positive_indicies = [i for i in range(0,len(diff_list)) if diff_list[i] > 0]
-    unmapped_drugs = [i for i in range(0,len(index)) if index[i] not in tcrp_results["Drug"].tolist()]
-    
+
+    positive_indicies = [i for i in range(0, len(diff_list)) if diff_list[i] > 0]
+    unmapped_drugs = [i for i in range(0, len(index)) if index[i] not in tcrp_results["Drug"].tolist()]
+
     fig = plt.figure()
     fig, ax = plt.subplots()
 
@@ -278,17 +281,17 @@ if (reference=="GDSC1") and (analysis_tissue=="PDTC"):
     fig, ax = plt.subplots()
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    fig.set_size_inches(8,12)
+    fig.set_size_inches(8, 12)
     barlist = plt.barh(index, diff_list, align='center', color='blue', zorder=10, alpha=0.5)
     for j in positive_indicies:
         barlist[int(j)].set_color('r')
     for j in unmapped_drugs:
         barlist[int(j)].set_color('w')
-    #plt.title("Difference between published objective value and reproduced objective value")
+    # plt.title("Difference between published objective value and reproduced objective value")
     plt.xlabel("Difference in correlation values")
     plt.ylabel("Drugs")
-    #plt.set_title(title0, fontsize=18, pad=15, color=color_red, **hfont)
-    #plt.barh(index, diff_list, align='center', color=color_blue, zorder=10)
-    #plt.set_title(title1, fontsize=18, pad=15, color=color_blue, **hfont)
+    # plt.set_title(title0, fontsize=18, pad=15, color=color_red, **hfont)
+    # plt.barh(index, diff_list, align='center', color=color_blue, zorder=10)
+    # plt.set_title(title1, fontsize=18, pad=15, color=color_blue, **hfont)
     plt.tight_layout()
-    plt.savefig("/results/difference_barplot.png") 
+    plt.savefig("/results/difference_barplot.png")

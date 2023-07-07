@@ -52,10 +52,11 @@ parser = argparse.ArgumentParser()
 ##print(dir_name)
 ##print(__file__)
 parser.add_argument('--dataset', type=str, default='', help='dataset to perform crossvalidation on')
-parser.add_argument('--tissue', type=str, default='UPPER_AERODIGESTIVE_TRACT', help='Validation tissue, using the rest tissues for training')
+parser.add_argument('--tissue', type=str, default='UPPER_AERODIGESTIVE_TRACT',
+                    help='Validation tissue, using the rest tissues for training')
 parser.add_argument('--drug', type=str, default='AC220', help='Treated drug')
 parser.add_argument('--K', type=int, default=5, help='Perform K shot learning')
-#parser.add_argument('--tissue_list', type=str, default=work_dic + 'cell_line_data/tissue_cell_line_list.pkl', help='Cell line list for different tissues')
+# parser.add_argument('--tissue_list', type=str, default=work_dic + 'cell_line_data/tissue_cell_line_list.pkl', help='Cell line list for different tissues')
 parser.add_argument('--num_trials', type=int, default=10, help='Number of trials for unseen tissue')
 parser.add_argument('--seed', type=int, default=19, help='Random seed.')
 parser.add_argument('--inner_batch_size', type=int, default=10, help='Batch size for each individual learning job')
@@ -63,8 +64,8 @@ parser.add_argument('--run_name', type=str, default='run', help='Run name')
 
 args = parser.parse_args()
 dataset = args.dataset
-work_dic =f"/data/drug_features/{dataset}/"
-data_dic =f"/data/drug_features/{dataset}/drug_feature/"
+work_dic = f"data/drug_features/{dataset}/"
+data_dic = f"data/drug_features/{dataset}/drug_feature/"
 job_directory = home_dir + '/output/{}/'.format(args.run_name)
 
 K = args.K
@@ -75,7 +76,7 @@ random.seed(args.seed)
 np.random.seed(args.seed)
 torch.manual_seed(args.seed)
 
-fewshot_directory ="/data/fewshot_data/" + f"fewshot_data_{dataset}/" + gene  + '/'
+fewshot_directory = "data/fewshot_data/" + f"fewshot_data_{dataset}/" + gene + '/'
 
 drug_tissue_list = work_dic + args.drug + '_tissue_cell_line_list.pkl'
 with open(drug_tissue_list, 'rb') as f:
@@ -83,12 +84,12 @@ with open(drug_tissue_list, 'rb') as f:
 
 # Load data
 
-drug_tissue_map = {k: v for k, v in drug_tissue_map.items() if len(v) > 0}
-out= load_data_cell_line( drug_tissue_map, args.drug, args.tissue, K, path=data_dic )
-train_feature, train_label, tissue_index_list, drug_test_feature, drug_test_label, _  = out
+drug_tissue_map = {k: v for k, v in list(drug_tissue_map.items()) if len(v) > 0}
+out = load_data_cell_line(drug_tissue_map, args.drug, args.tissue, K, path=data_dic)
+train_feature, train_label, tissue_index_list, drug_test_feature, drug_test_label, _ = out
 feature_dim = train_feature.shape[1]
 
-#tissue_list = work_dic + gene + '_tissue_cell_line_list.pkl'
+# tissue_list = work_dic + gene + '_tissue_cell_line_list.pkl'
 tissue_list = work_dic + gene + '_tissue_cell_line_list.pkl'
 with open(tissue_list, 'rb') as f:
     tissue_map = pickle.load(f)
@@ -101,18 +102,18 @@ for trial in range(num_trials):
     # Sample a few shot learning task. Here we use k training, and use the rest for testing. 
     unseen_train_loader, unseen_test_loader = get_unseen_data_loader(
         drug_test_feature, drug_test_label, args.K, args.inner_batch_size)
-    
+
     # if len(unseen_train_loader) > 1 or len(unseen_test_loader) > 1: 
     #     raise RuntimeError("DID NOT EXPECT TRAIN_LOADER TO BE LONGER THAN 1!!!")
 
-    train_X, train_y = [np.vstack([mat.cpu() for mat in mats]) for mats in  zip(*unseen_train_loader)]
-    test_X, test_y = [np.vstack([mat.cpu() for mat in mats]) for mats in  zip(*unseen_test_loader)]
-    
-    for i in range(1, K+1): 
+    train_X, train_y = [np.vstack([mat.cpu() for mat in mats]) for mats in zip(*unseen_train_loader)]
+    test_X, test_y = [np.vstack([mat.cpu() for mat in mats]) for mats in zip(*unseen_test_loader)]
+
+    for i in range(1, K + 1):
         filename = "{}_{}_{}-shot_{}-trial_train".format(args.drug, args.tissue, i, trial)
         filename = tissue_directory + filename
         np.savez(filename, train_X=train_X[:i], train_y=train_y[:i])
-        
+
     filename = "{}_{}_{}-trial_test".format(args.drug, args.tissue, trial)
     filename = tissue_directory + filename
     np.savez(filename, test_X=test_X, test_y=test_y)
