@@ -7,10 +7,10 @@ import glob
 import sys
 import pickle
 import copy
-from .data_loading import *
-from .utils import *
-from .score import *
-from .layers import *
+from data_loading import *
+from utils import *
+from score import *
+from layers import *
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.neighbors import KNeighborsRegressor

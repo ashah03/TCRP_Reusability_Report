@@ -5,10 +5,10 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 
-from .layers import *
-from .score import *
-from .data_loading import *
-from .mlp import mlp
+from layers import *
+from score import *
+from data_loading import *
+from mlp import mlp
 
 
 class InnerLoop(mlp):

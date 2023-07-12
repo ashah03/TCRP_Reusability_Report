@@ -31,8 +31,12 @@ n_gpus = 20
 
 run_mode = "tcrp"  # "tcrp" or "baseline"
 run_name = "210803_drug-baseline-models"
-dataset = "GDSC1_GSE20194"
-tissue = "GSE20194_Breast"
+# dataset = "GDSC1_GSE20194"
+# tissue = "GSE20194_Breast"
+
+dataset = "GDSC1_PDTC"
+tissue = "PDTC_Breast"
+
 out_directory = f"code/tcrp_model/created_models/created_models_{dataset}/"
 if run_mode == 'baseline':
     task_directory = out_directory + "baseline"

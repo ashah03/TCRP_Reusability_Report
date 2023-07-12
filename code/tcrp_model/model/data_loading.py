@@ -29,6 +29,7 @@ def get_unseen_data_loader( feature, label, cat_label, K ):
 	return train_loader, test_loader
 '''
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def get_observed_data_loader(feature, label, tissue_index_list, K, batch_size, tissue_num):
     index_list = copy.deepcopy(tissue_index_list)

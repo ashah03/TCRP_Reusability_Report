@@ -9,6 +9,7 @@ Useful for when weights are exposed rather
 than being contained in modules
 '''
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def linear(input, weight, bias):
     # return F.linear(input, weight.cuda(), bias.cuda())
