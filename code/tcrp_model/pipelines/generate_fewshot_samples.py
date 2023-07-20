@@ -51,10 +51,10 @@ parser = argparse.ArgumentParser()
 
 ##print(dir_name)
 ##print(__file__)
-parser.add_argument('--dataset', type=str, default='', help='dataset to perform crossvalidation on')
+parser.add_argument('--dataset', type=str, default='GDSC1_PDTC', help='dataset to perform crossvalidation on')
 parser.add_argument('--tissue', type=str, default='UPPER_AERODIGESTIVE_TRACT',
                     help='Validation tissue, using the rest tissues for training')
-parser.add_argument('--drug', type=str, default='AC220', help='Treated drug')
+parser.add_argument('--drug', type=str, default='PDTC', help='Treated drug')
 parser.add_argument('--K', type=int, default=5, help='Perform K shot learning')
 # parser.add_argument('--tissue_list', type=str, default=work_dic + 'cell_line_data/tissue_cell_line_list.pkl', help='Cell line list for different tissues')
 parser.add_argument('--num_trials', type=int, default=10, help='Number of trials for unseen tissue')

@@ -17,8 +17,7 @@ There are multiple different ways you can interact with this capsule
    some good examples to run would be `gCSI_PDTC`, `CTRP_PDTC` or `GDSC1_GSE41998` as they are very small in compute
    runtime)
 
-# Running your own, new clinical context
-
+# Running your own, new clinical contex
 1. reference files in `/data/references` and `/data/transfers/` to understand input files that are needed.
 2. Run the correct preprocessing notebook. Substitute dataset names where appropriate Decisions for the appropriate
    notebook are made as follows:
@@ -64,7 +63,7 @@ There are multiple different ways you can interact with this capsule
   use `/data/original_data/original_TCRP` and `/data/original_data/spear_TCRP` in combination with the
   notebook `/code/tcrp_model/model_comparisons/1-gather-baselines-and-fewshot.ipynb`.
 
-8. Your baseline comparison vs. TCRP PNG file will be saved in `/results/`
+8. Your baseline comparison vs. TCRP PNG file will be saved in `results/`
 
 Should you have any inquiries or questions, pelase contact [emily.so@mail.utoronto.ca](emily.so@mail.utoronto.ca)
 

@@ -243,7 +243,7 @@ for batch_feature, batch_label in zero_test_loader:
     zero_test_data_list.append((batch_feature.cuda(), batch_label.cuda()))
 
 # predict_folder = work_dic + 'MAML_prediction/' + args.drug + '/' + args.tissue + '/'
-predict_folder = f"/results/{dataset}_predictions/" + args.drug + '/' + args.tissue + '/' + hyperparam_str + '/'
+predict_folder = f"results/{dataset}_predictions/" + args.drug + '/' + args.tissue + '/' + hyperparam_str + '/'
 mkdir_cmd = 'mkdir -p ' + predict_folder
 os.system(mkdir_cmd)
 
@@ -326,7 +326,7 @@ for epoch in range(args.num_updates):
     meta_update(observed_test_loader, grads)
 # print('Best loss meta training:', test_corr[best_epoch])
 
-base_line_outpath = f"/results/{dataset}/TCRP_performances/" + args.drug + '/' + args.tissue + '/'
+base_line_outpath = f"results/{dataset}/TCRP_performances/" + args.drug + '/' + args.tissue + '/'
 os.system("mkdir -p {}".format(base_line_outpath))
 new_test_corr = test_corr[test_corr != 0]
 if isinstance(zero_test_spear_corr, int) or isinstance(zero_test_spear_corr, np.float64) or isinstance(

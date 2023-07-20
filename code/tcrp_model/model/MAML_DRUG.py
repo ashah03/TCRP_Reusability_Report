@@ -26,11 +26,11 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 warnings.filterwarnings("ignore", category=FutureWarning)
 # Training settings
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset', type=str, default='', help='dataset to perform cross validation on')
-parser.add_argument('--tissue', type=str, default='UPPER_AERODIGESTIVE_TRACT',
+parser.add_argument('--dataset', type=str, default='GDSC1_PDTC', help='dataset to perform cross validation on')
+parser.add_argument('--tissue', type=str, default='PDTC',
                     help='Validation tissue, using the rest tissues for training')
-parser.add_argument('--drug', type=str, default='AC220', help='Treated drug')
-parser.add_argument('--no-cuda', action='store_true', default=False, help='Disables CUDA training.')
+parser.add_argument('--drug', type=str, default='Sorafenib', help='Treated drug')
+parser.add_argument('--no_cuda', action='store_true', default=False, help='Disables CUDA training.')
 parser.add_argument('--seed', type=int, default=19, help='Random seed.')
 parser.add_argument('--K', type=int, default=5, help='Perform K shot learning')
 parser.add_argument('--meta_lr', type=float, default=0.001, help='Learning rate for meta-learning update')
@@ -94,10 +94,14 @@ observed_opt = torch.optim.Adam(observed_tissue_model.parameters(), lr=args.meta
 # This is the inside learner
 inner_net = InnerLoop(args.num_inner_updates, args.inner_lr, feature_dim, args.layer, args.hidden)
 
+print("Here 0")
 if args.cuda:
     torch.cuda.manual_seed(args.seed)
+    print("Here 1")
     observed_tissue_model.cuda()
+    print("Here 2")
     inner_net.cuda()
+    print("Here 3")
 
 
 def zero_shot_test(unseen_test_loader):
@@ -122,7 +126,7 @@ def unseen_tissue_learn(unseen_train_loader, unseen_test_loader):
     # First need to copy the original meta learning model
     unseen_tissue_model.copy_weights(observed_tissue_model)
     unseen_tissue_model.cuda()
-    # unseen_tissue_model.train()
+    unseen_tissue_model.train()  # TODO make sure this is supposed to be enabled, just changed this manualy
     unseen_tissue_model.eval()
 
     unseen_opt = torch.optim.SGD(unseen_tissue_model.parameters(), lr=args.inner_lr)
@@ -148,7 +152,7 @@ def unseen_tissue_learn(unseen_train_loader, unseen_test_loader):
 
 
 def meta_update(test_loader, ls):
-    # print 'Meta update'
+    print('Meta update')
     in_, target = test_loader.__iter__().__next__()
 
     # We use a dummy forward / backward pass to get the correct grads into self.net
@@ -245,17 +249,17 @@ for batch_feature, batch_label in zero_test_loader:
     zero_test_data_list.append((batch_feature.cuda(), batch_label.cuda()))
 
 # predict_folder = work_dic + 'MAML_prediction/' + args.drug + '/' + args.tissue + '/'
-predict_folder = f"/results/{dataset}_predictions/" + args.drug + '/' + args.tissue + '/' + hyperparam_str + '/'
+predict_folder = f"results/{dataset}_predictions/" + args.drug + '/' + args.tissue + '/' + hyperparam_str + '/'
 mkdir_cmd = 'mkdir -p ' + predict_folder
 os.system(mkdir_cmd)
 
-# print("Number of updates: ", args.num_updates)
+print("Number of updates: ", args.num_updates)
 
 for epoch in range(args.num_updates):
-    # print("epoch: ", epoch)
+    print("epoch: ", epoch)
 
     zero_test_loss, zero_test_corr, test_prediction, test_true_label = zero_shot_test(zero_test_data_list)
-    # print('0 Few shot', epoch, 'meta training:', '-1', '-1', zero_test_loss, zero_test_corr)
+    print('0 Few shot', epoch, 'meta training:', '-1', '-1', zero_test_loss, zero_test_corr)
 
     epoch_folder = predict_folder + 'epochs_' + str(epoch) + '/'
     mkdir_cmd = 'mkdir -p ' + epoch_folder
@@ -319,15 +323,15 @@ for epoch in range(args.num_updates):
         bad_counter += 1
 
     if bad_counter == args.patience:
-        # print("Ran out of patience. Breaking out...")
+        print(f"Ran out of patience. Best epoch was {best_epoch} with loss {best_loss}. Breaking out...")
         break
 
-    # print('Meta update', epoch, meta_train_loss.mean(), meta_train_corr.mean(), meta_val_loss.mean(), meta_val_corr.mean(), 'best epoch', best_epoch)
+    print('Meta update', epoch, meta_train_loss.mean(), meta_train_corr.mean(), meta_val_loss.mean(), meta_val_corr.mean(), 'best epoch', best_epoch)
     # Perform the meta update
     meta_update(observed_test_loader, grads)
-# print('Best loss meta training:', test_corr[best_epoch])
+print('Best loss meta training:', test_corr[best_epoch])
 
-base_line_outpath = f"/results/{dataset}/TCRP_performances/" + args.drug + '/' + args.tissue + '/'
+base_line_outpath = f"results/{dataset}/TCRP_performances/" + args.drug + '/' + args.tissue + '/'
 os.system("mkdir -p {}".format(base_line_outpath))
 
 new_test_corr = test_corr[test_corr != 0]
@@ -342,14 +346,15 @@ log_file = predict_folder + 'log.txt'
 print(("corr mean", corr_mean))
 results = {}
 results["TCRP-zero"] = corr_zero
-# print("here")
+print("here")
 results["TCRP-fewshot"] = test_corr[best_epoch]
-# print(results["TCRP-fewshot"])
+print(results["TCRP-fewshot"])
 np.savez(
     base_line_outpath + "TCRP_performance",
     **results
 )
 with open(log_file, 'w') as f:
+    print(f"Saving to {log_file}")
     f.write(f"Best corr meta training:,{test_corr[best_epoch]}\n")
     f.write(f"Best epoch is {best_epoch}\n")
     f.write(f"zero,{zero_test_corr}\n")

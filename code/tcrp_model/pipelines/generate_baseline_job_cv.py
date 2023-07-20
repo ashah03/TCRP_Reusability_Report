@@ -48,6 +48,7 @@ for line in file_handle:
         tissue_map = pickle.load(f)
 
     # for tissue, tissue_cell_line in tissue_map.items():
+    # print(tissue_map.keys())
     tissue_cell_line = tissue_map[tissue]
     # if len(tissue_cell_line) < 15:
     # 	continue

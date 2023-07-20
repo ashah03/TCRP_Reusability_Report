@@ -3,7 +3,7 @@ set -ex
 IFS='_' read -r -a array <<< $1
 #REFERENCE=${array[0]}
 REFERENCE=GDSC1
-TRANSFER=PDTX
+TRANSFER=PDTC
 #TRANSFER=${array[1]}
 echo "TCRP prediction is being performed on ${TRANSFER}, trained on ${REFERENCE}"
 bash code/tcrp_model/created_models/created_models_${REFERENCE}_${TRANSFER}/run_baselines.sh

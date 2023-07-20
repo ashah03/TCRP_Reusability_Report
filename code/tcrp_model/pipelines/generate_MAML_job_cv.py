@@ -55,7 +55,7 @@ for line in file_handle:
         # cmd_str = '$python ' + '/root/capsule/code/tcrp/pipelines/generate_baseline_job_cv.py' + '--tissue {} --drug {} --K 10 --num_trials 20 --run_name {}'.format(tissue, gene, args.run_name)
         # cmd_list.append(cmd_str)
 
-        log_folder = f"/results/{dataset}/run-logs/{gene}/{tissue}/"
+        log_folder = f"results/{dataset}/run-logs/{gene}/{tissue}/"
         log_list.append(f"mkdir -p {log_folder}")
         # os.system("mkdir -p {}".format(log_folder))
 
@@ -88,10 +88,10 @@ os.system("mkdir -p {}".format(subcommand_directory))
 with open(subcommand_directory + '/' + 'subcommands_MAML_{}{}.sh'.format(job, job_id), 'w') as f:
     f.write('#!/bin/bash\n')
     f.write('set -ex\n')
-    f.write(f"mkdir -p /results/{dataset}\n")
-    f.write(f"mkdir -p /results/{dataset}/run-logs/\n")
+    f.write(f"mkdir -p results/{dataset}\n")
+    f.write(f"mkdir -p results/{dataset}/run-logs/\n")
     for i in gene_list:
-        f.write(f"mkdir -p /results/{dataset}/run-logs/{i}\n")
+        f.write(f"mkdir -p results/{dataset}/run-logs/{i}\n")
     f.writelines('\n'.join(log_list) + '\n')
     f.writelines('\n'.join(cmd_list) + '\n')
 

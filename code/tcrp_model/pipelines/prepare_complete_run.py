@@ -29,13 +29,13 @@ home_dir = os.path.dirname(os.path.dirname(dirname))
 
 n_gpus = 20
 
-run_mode = "tcrp"  # "tcrp" or "baseline"
+run_mode = "baseline"  # "tcrp" or "baseline"
 run_name = "210803_drug-baseline-models"
 # dataset = "GDSC1_GSE20194"
 # tissue = "GSE20194_Breast"
 
 dataset = "GDSC1_PDTC"
-tissue = "PDTC_Breast"
+tissue = "PDTC"
 
 out_directory = f"code/tcrp_model/created_models/created_models_{dataset}/"
 if run_mode == 'baseline':

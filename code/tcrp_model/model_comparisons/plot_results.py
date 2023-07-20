@@ -25,7 +25,7 @@ parser.add_argument('--tissue', type=str, default='', help='transfer tissue used
 args = parser.parse_args()
 reference = args.reference
 analysis_tissue = args.tissue
-results_directory = f"/results/{reference}_{analysis_tissue}/"
+results_directory = f"results/{reference}_{analysis_tissue}/"
 
 # specify baseline performance results path here
 datapath = Path(f"{results_directory}/baseline_performances/")
@@ -88,8 +88,11 @@ for drug, d in list(results.items()):
                 p = np.nan_to_num(p)
                 TCRP_results[model].append(p)
 
+
 for model, ps in list(TCRP_results.items()):
     TCRP_results[model] = np.vstack(ps)
+
+print("TCRP_results", TCRP_results)
 
 results_by_baseline = {'Linear Regression': [], 'Nearest Neighbour': [], 'Random Forest': [], "TCRP": [],
                        "Neural Network": []}
@@ -146,7 +149,7 @@ if (reference == "GDSC1") and (analysis_tissue == "PDTC"):
     plt.xlabel("Number of PDTC models")
 else:
     plt.title(f"{reference} {analysis_tissue} results")
-plt.savefig(f"/results/{reference}_{analysis_tissue}.png")
+plt.savefig(f"results/{reference}_{analysis_tissue}.png")
 
 if (reference == "GDSC1") and (analysis_tissue == "PDTC"):
     TCRP_drug = {}
@@ -254,7 +257,7 @@ if (reference == "GDSC1") and (analysis_tissue == "PDTC"):
     plt.xticks([-0.5, -0.3, -0.1, 0.1, 0.3, 0.5, 0.7])
     # plt.tight_layout()
     # plt.legend(loc='lower right',prop={'size': 6})
-    plt.savefig(f"/results/{reference}_{analysis_tissue}_dotplot.png")
+    plt.savefig(f"results/{reference}_{analysis_tissue}_dotplot.png")
     ground_truth = pd.read_csv("data/drug_performance.csv")["corr"].tolist()
     drugs = pd.read_csv("data/drug_performance.csv")["Drug"].tolist()
     mean_list = []
@@ -271,7 +274,7 @@ if (reference == "GDSC1") and (analysis_tissue == "PDTC"):
     diff_list.reverse()
 
     positive_indicies = [i for i in range(0, len(diff_list)) if diff_list[i] > 0]
-    unmapped_drugs = [i for i in range(0, len(index)) if index[i] not in tcrp_results["Drug"].tolist()]
+    unmapped_drugs = [i for i in range(0, len(index)) if index[i] not in TCRP_results["Drug"].tolist()]
 
     fig = plt.figure()
     fig, ax = plt.subplots()
@@ -294,4 +297,4 @@ if (reference == "GDSC1") and (analysis_tissue == "PDTC"):
     # plt.barh(index, diff_list, align='center', color=color_blue, zorder=10)
     # plt.set_title(title1, fontsize=18, pad=15, color=color_blue, **hfont)
     plt.tight_layout()
-    plt.savefig("/results/difference_barplot.png")
+    plt.savefig("results/difference_barplot.png")

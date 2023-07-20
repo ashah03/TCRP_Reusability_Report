@@ -34,7 +34,7 @@ parser.add_argument('--seed', type=int, default=19, help='Random seed.')
 parser.add_argument('--K', type=int, default=5, help='Perform K shot learning')
 parser.add_argument('--num_trials', type=int, default=10, help='Number of trials for unseen tissue')
 # parser.add_argument('--tissue_list', type=str, default=work_dic + 'cell_line_data/tissue_cell_line_list.pkl', help='Cell line list for different tissues')
-parser.add_argument('--log_folder', type=str, default='/results/Log/', help='Log folder')
+parser.add_argument('--log_folder', type=str, default='results/Log/', help='Log folder')
 parser.add_argument('--tissue_num', type=int, default=13, help='Tissue number evolved in the inner update')
 parser.add_argument('--run_name', type=str, default='run', help='Run name')
 parser.add_argument('--fewshot_data_path', type=str, default=None, help='Path to fewshot data')
@@ -334,7 +334,7 @@ def make_predictions(model, X, y):
     return rho
 
 
-base_line_outpath = f"/results/{dataset}/baseline_performances/" + args.drug + '/' + args.tissue + '/'
+base_line_outpath = f"results/{dataset}/baseline_performances/" + args.drug + '/' + args.tissue + '/'
 os.system("mkdir -p {}".format(base_line_outpath))
 
 if args.RF == "True":
